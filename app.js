@@ -1,8 +1,9 @@
-// -- PDF.js WOrker setup --
+// -- PDF.js Worker setup --
 if (typeof pdfjsLib !== 'undefined') {
   pdfjsLib.GlobalWorkerOptions.workerSrc = 
     'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 }
+
 // ── DOM Elements ──────────────────────────────
 const candidateName   = document.getElementById('candidateName');
 const jobRole         = document.getElementById('jobRole');
@@ -10,7 +11,7 @@ const targetCompany   = document.getElementById('targetCompany');
 const keySkills       = document.getElementById('keySkills');
 const jobDescription  = document.getElementById('jobDescription');
 const generateTemplateBtn = document.getElementById('generateTemplateBtn');
-const generateAIBtn = document.getElementById('generateAIBtn');
+const generateAIBtn   = document.getElementById('generateAIBtn');
 const defaultState    = document.getElementById('defaultState');
 const generatingState = document.getElementById('generatingState');
 const outputCard      = document.getElementById('outputCard');
@@ -25,13 +26,7 @@ const themeToggle     = document.getElementById('themeToggle');
 // ── State ─────────────────────────────────────
 let resumeText = '';
 
-// ── Gemini API Key ────────────────────────────
-// .env se nahi aa sakti directly browser mein
-// Isliye yahan safely rakho — .gitignore se protect hai
-const GEMINI_API_KEY = '';
-
 // ── Phase 1: Template Generator ───────────────
-// Hardcoded template string se cover letter banao
 function generateTemplate(name, role, company, skills, jobDesc) {
   return `Dear Hiring Manager at ${company},
 
@@ -57,7 +52,6 @@ ${name}`;
 
 // ── Phase 2: Gemini API Call ──────────────────
 async function generateWithGemini(name, role, company, skills, jobDesc, resume) {
-  // Prompt engineering — variables inject karo
   const prompt = `You are a professional cover letter writer.
 
 Write a compelling, professional cover letter for the following candidate:
@@ -78,30 +72,24 @@ Instructions:
 - Start with "Dear Hiring Manager at ${company},"
 - End with the candidate's name`;
 
-  // Gemini API call
   const response = await fetch('/api/generate', {
-  method: 'POST',
-  headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify({ prompt: prompt })
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ prompt: prompt })
   });
 
   if (!response.ok) {
-    throw new Error('Gemini API call failed');
+    throw new Error('API call failed');
   }
 
   const data = await response.json();
-
-  // Response se text nikalo
   const text = data.candidates[0].content.parts[0].text;
   return text;
 }
 
 // ── Render Cover Letter ───────────────────────
 function renderCoverLetter(text) {
-  // Text ko paragraphs mein split karo
   const paragraphs = text.split('\n').filter(p => p.trim() !== '');
-
-  // HTML mein convert karo
   coverLetterOutput.innerHTML = paragraphs
     .map(p => `<p>${p}</p>`)
     .join('');
@@ -126,8 +114,7 @@ function showOutput() {
   outputCard.classList.remove('hidden');
 }
 
-// ── Generate Button Click ─────────────────────
-// Template Button
+// ── Template Button ───────────────────────────
 generateTemplateBtn.addEventListener('click', async function () {
   const name    = candidateName.value.trim();
   const role    = jobRole.value.trim();
@@ -147,7 +134,7 @@ generateTemplateBtn.addEventListener('click', async function () {
   showOutput();
 });
 
-// AI Button
+// ── AI Button ─────────────────────────────────
 generateAIBtn.addEventListener('click', async function () {
   const name    = candidateName.value.trim();
   const role    = jobRole.value.trim();
@@ -177,82 +164,33 @@ generateAIBtn.addEventListener('click', async function () {
   }
 });
 
-  // Validation
-  if (!name || !role || !company || !skills) {
-    alert('Please fill in all required fields!');
-    return;
-  }
-
-  // Generating state dikhao
-  showGenerating();
-
-  try {
-    let coverLetter;
-
-    // Gemini API try karo
-    if (GEMINI_API_KEY && GEMINI_API_KEY !== 'tumhari_api_key_yahan') {
-      coverLetter = await generateWithGemini(
-        name, role, company, skills, jobDesc, resumeText
-      );
-    } else {
-      // Fallback — template use karo
-      // Simulate delay
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      coverLetter = generateTemplate(
-        name, role, company, skills, jobDesc
-      );
-    }
-
-    // Cover letter render karo
-    renderCoverLetter(coverLetter);
-
-    // Output dikhao
-    showOutput();
-
-  } catch (error) {
-    // Error hone pe template use karo
-    console.error('Gemini API error:', error);
-    const coverLetter = generateTemplate(
-      name, role, company, skills, jobDesc
-    );
-    renderCoverLetter(coverLetter);
-    showOutput();
-  };
-
 // ── Copy to Clipboard ─────────────────────────
 copyBtn.addEventListener('click', function () {
-  // Cover letter text copy karo
   const text = coverLetterOutput.innerText;
 
   navigator.clipboard.writeText(text).then(function () {
-    // Success message dikhao
     copySuccess.classList.remove('hidden');
-
-    // 3 second baad hide karo
     setTimeout(function () {
       copySuccess.classList.add('hidden');
     }, 3000);
   });
 });
 
-// ── PDF Resume Upload — Phase 3 ───────────────
+// ── PDF Resume Upload ─────────────────────────
 resumeFile.addEventListener('change', async function (e) {
   const file = e.target.files[0];
 
   if (!file) return;
 
-  // File naam dikhao
   fileName.textContent = '📄 ' + file.name;
   fileName.classList.remove('hidden');
 
   try {
-    // PDF.js se text extract karo
     const arrayBuffer = await file.arrayBuffer();
     const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
 
     let fullText = '';
 
-    // Har page se text nikalo
     for (let i = 1; i <= pdf.numPages; i++) {
       const page = await pdf.getPage(i);
       const textContent = await page.getTextContent();
@@ -262,13 +200,21 @@ resumeFile.addEventListener('change', async function (e) {
       fullText += pageText + '\n';
     }
 
-    // Resume text save karo
     resumeText = fullText;
-    console.log('Resume extracted:', resumeText.substring(0, 100));
+    console.log('Resume extracted successfully:', resumeText.substring(0, 100));
 
   } catch (error) {
     console.error('PDF extraction error:', error);
     fileName.textContent = '❌ Could not read PDF';
+  }
+});
+
+// ── Dropzone Click → File Input Trigger ───────
+dropzone.addEventListener('click', function (e) {
+  // file-input pe click already propagate hota hai via CSS (opacity:0, inset:0)
+  // Ye extra handler Safari/mobile ke liye
+  if (e.target !== resumeFile) {
+    resumeFile.click();
   }
 });
 
