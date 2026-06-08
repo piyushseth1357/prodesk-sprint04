@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AI Cover Letter Generator — Prodesk IT</title>
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+    <!-- HEADER -->
+    <header class="header">
+        <div class="header-left">
+            <div class="logo">P</div>
+            <span class="brand">Prodesk<span class="accent">IT</span></span>
+        </div>
+        <div class="header-right">
+            <span class="sprint-badge">Sprint 04</span>
+            <button id="themeToggle" class="theme-btn" aria-label="Toggle theme">
+                <i class="fas fa-moon"></i>
+            </button>
+        </div>
+    </header>
+
+    <!-- MAIN CONTAINER -->
+    <main class="container">
+
+        <!-- PAGE TITLE -->
+        <div class="page-title">
+            <h1>AI Cover Letter <span class="accent">Generator</span></h1>
+            <p>Fill in your details and let AI write your perfect cover letter</p>
+        </div>
+
+        <!-- MAIN GRID -->
+        <div class="main-grid">
+
+            <!-- LEFT PANEL - FORM -->
+            <div class="left-panel">
+
+                <!-- Form Card -->
+                <div class="card">
+                    <h2 class="card-title">
+                        <i class="fas fa-user-tie"></i> Your Details
+                    </h2>
+
+                    <!-- Candidate Name -->
+                    <div class="form-group">
+                        <label class="form-label">Candidate Name</label>
+                        <input 
+                            type="text" 
+                            id="candidateName" 
+                            class="form-input" 
+                            placeholder="e.g. Piyush Seth"
+                        />
+                    </div>
+
+                    <!-- Job Role -->
+                    <div class="form-group">
+                        <label class="form-label">Job Role</label>
+                        <input 
+                            type="text" 
+                            id="jobRole" 
+                            class="form-input" 
+                            placeholder="e.g. Frontend Developer"
+                        />
+                    </div>
+
+                    <!-- Target Company -->
+                    <div class="form-group">
+                        <label class="form-label">Target Company</label>
+                        <input 
+                            type="text" 
+                            id="targetCompany" 
+                            class="form-input" 
+                            placeholder="e.g. Google"
+                        />
+                    </div>
+
+                    <!-- Key Skills -->
+                    <div class="form-group">
+                        <label class="form-label">Key Skills</label>
+                        <input 
+                            type="text" 
+                            id="keySkills" 
+                            class="form-input" 
+                            placeholder="e.g. HTML, CSS, JavaScript, React"
+                        />
+                    </div>
+
+                    <!-- Job Description -->
+                    <div class="form-group">
+                        <label class="form-label">Job Description</label>
+                        <textarea 
+                            id="jobDescription" 
+                            class="form-textarea" 
+                            placeholder="Paste the job description here..."
+                            rows="5"
+                        ></textarea>
+                    </div>
+
+                    <!-- Resume Upload Phase 3 -->
+                    <div class="form-group">
+                        <label class="form-label">
+                            Upload Resume (PDF) 
+                            <span class="optional-badge">Optional</span>
+                        </label>
+                        <div class="dropzone" id="dropzone">
+                            <i class="fas fa-cloud-arrow-up dropzone-icon"></i>
+                            <p>Drag & drop your PDF here</p>
+                            <p class="dropzone-sub">or click to browse</p>
+                            <input 
+                                type="file" 
+                                id="resumeFile" 
+                                accept=".pdf" 
+                                class="file-input"
+                            />
+                        </div>
+                        <p id="fileName" class="file-name hidden"></p>
+                    </div>
+
+                    <!-- Generate Button -->
+                    <div class="generate-btns">
+                        <button id="generateTemplateBtn" class="btn-generate btn-template">
+                            <i class="fas fa-file-lines"></i>
+                            Generate with Template
+                        </button>
+                        <button id="generateAIBtn" class="btn-generate btn-ai">
+                            <i class="fas fa-wand-magic-sparkles"></i>
+                            Generate with AI ✨
+                        </button>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- RIGHT PANEL - OUTPUT -->
+            <div class="right-panel">
+
+                <!-- Default State -->
+                <div id="defaultState" class="output-default">
+                    <i class="fas fa-file-lines output-icon"></i>
+                    <h3>Your cover letter will appear here</h3>
+                    <p>Fill in your details and click Generate</p>
+                </div>
+
+                <!-- Generating State -->
+                <div id="generatingState" class="generating-state hidden">
+                    <div class="spinner"></div>
+                    <p>Generating your cover letter...</p>
+                    <p class="generating-sub">This may take 2-5 seconds</p>
+                </div>
+
+                <!-- Output Card -->
+                <div id="outputCard" class="card output-card hidden">
+                    <div class="output-header">
+                        <h2 class="card-title">
+                            <i class="fas fa-file-check"></i> 
+                            Generated Cover Letter
+                        </h2>
+                        <button id="copyBtn" class="btn-copy">
+                            <i class="fas fa-copy"></i> Copy
+                        </button>
+                    </div>
+
+                    <!-- Cover Letter Text -->
+                    <div id="coverLetterOutput" class="cover-letter-output"></div>
+
+                    <!-- Copy Success Message -->
+                    <div id="copySuccess" class="copy-success hidden">
+                        <i class="fas fa-circle-check"></i> 
+                        Copied to clipboard!
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </main>
+
+    <!-- PDF.js CDN for Phase 3 -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <script>
+      pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+    </script>
+
+    <!-- Custom JS -->
+    <script src="config.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
